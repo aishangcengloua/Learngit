@@ -1,2 +1,2 @@
 git is a free software
-git is good tool
+git is a good tool.
