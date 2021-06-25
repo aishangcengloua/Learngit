@@ -1,0 +1,161 @@
+# include <cstdio>
+# include <cstdlib>
+# include <cstring>
+# include <ctime>
+# include <cmath>
+# include <windows.h>
+# define NUM 100
+# define PI 3.1415926
+
+struct BALL {
+	char body[2];
+	int sel;
+	int wX;
+	int wY;
+	double X;
+	double Y;
+	double dX;
+	double dY;
+};
+
+void SetPos(int x, int y)
+{
+	COORD point = { x, y };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), point);
+}
+
+void set_console_color(unsigned short color_index)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color_index);
+}
+
+int randN1N2(int rN1, int rN2)
+{
+	int ball = rand() % (rN2 - rN1 + 1) + rN1;
+	return ball;
+}
+
+double RandN1N2(int rN1, int rN2)
+{
+	double ball = rand() % (rN2 - rN1 + 1) + rN1;
+	return ball;
+}
+
+void initCharPicture(char cWin[24][80])
+{
+	for (int i = 0; i < 24; ++i)
+	{
+		for (int j = 0; j < 80; ++j)
+		{
+			if (j == 79)
+				cWin[i][j] = '\0';
+			else
+				cWin[i][j] = ' ';
+		}
+	}
+}
+
+void drawBackground(char cWin[24][80])
+{
+	SetPos(0, 0);
+	set_console_color(0);
+	for (int i = 0; i < 24; ++i)
+		puts(cWin[i]);
+}
+
+void initBall(struct BALL ball[], int num)
+{
+	for (int i = 0; i < num; ++i)
+	{
+		ball[i].sel = randN1N2(0, 1);
+		ball[i].body[ball[i].sel] = randN1N2(1, 15);
+		ball[i].X = RandN1N2(1, 22);
+		ball[i].Y = RandN1N2(1, 77);
+		ball[i].wX = (int)ball[i].X;
+		ball[i].wY = (int)ball[i].Y;
+		ball[i].dX = cos(randN1N2(0, 365) * PI / 180);
+		ball[i].dY = sin(randN1N2(0, 365) * PI / 180);
+	}
+}
+
+void moveBall(struct BALL ball[], int num)
+{
+	for (int i = 0; i < num; ++i)
+	{
+		ball[i].X = ball[i].X + ball[i].dX;
+		ball[i].Y = ball[i].Y + ball[i].dY;
+		ball[i].wX = (int)ball[i].X;
+		ball[i].wY = (int)ball[i].Y;
+		if (ball[i].X < 0)
+		{
+			ball[i].dX = -ball[i].dX;
+			ball[i].X = ball[i].X + ball[i].dX;
+		}
+		else if (ball[i].Y < 0 || ball[i].Y > 77)
+		{
+			ball[i].dY = -ball[i].dY;
+			ball[i].Y = ball[i].Y + ball[i].dY;
+		}
+		else if (ball[i].X > 23)
+		{
+			ball[i].dX = -ball[i].dX;
+			ball[i].X = ball[i].X + ball[i].dX;
+			putchar('\7');
+		}
+	}
+	for (int i = 0; i < num - 1; ++i)
+	{
+		for (int j = i + 1; j < num; ++j)
+		{
+			if (sqrt(pow((ball[i].X - ball[j].X), 2) + pow((ball[i].Y - ball[j].Y), 2)) < 1)
+			{
+				double temp;
+				temp = ball[j].dX;
+				ball[j].dX = ball[j].dY;
+				ball[j].dY = temp;
+				temp = ball[i].dX;
+				ball[i].dX = ball[i].dY;
+				ball[i].dY = temp;
+				ball[i].body[ball[i].sel] = randN1N2(1, 15);
+				ball[j].body[ball[i].sel] = randN1N2(1, 15);
+			}
+		}
+	}
+}
+void drawBall(struct BALL ball[], int num)
+{
+	for (int i = 0; i < num; ++i)
+	{
+		SetPos(ball[i].wY, ball[i].wX);
+		set_console_color(ball[i].body[ball[i].sel]);
+		printf("Ｏ");
+	}
+}
+
+int main(void)
+{
+	srand(time(NULL));
+	char bg[24][80];
+	struct BALL ball[100];
+	int n, c = 1000;
+	printf("请输入弹球的总数：");
+	scanf_s("%d", &n);
+
+	if (n > NUM)	n = NUM;
+	else if (n < 1)	n = 1;
+
+	initCharPicture(bg);
+	initBall(ball, n);
+
+	while (c)
+	{
+		drawBackground(bg);
+		moveBall(ball, n);
+		drawBall(ball, n);
+
+		Sleep(100);
+		c--;
+	}
+
+	return 0;
+}
